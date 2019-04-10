@@ -18,7 +18,7 @@ export const initSocket = () => {
   });
 
   socket.on("channels", data => {
-    channels = data.devices;
+    channels = data;
     if (channelCallback) {
       channelCallback(channels);
     }

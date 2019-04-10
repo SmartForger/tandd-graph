@@ -28,7 +28,7 @@ function getChannels() {
       "login-pass": "eifjN23S"
     })
     .then(res => {
-      channels = res.data || [];
+      channels = res.data.devices || [];
 
       const resetLimit = +res.headers["x-ratelimit-reset"] || 120;
       const limitCount = +res.headers["x-ratelimit-limit"] || 10;
