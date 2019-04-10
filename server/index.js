@@ -1,9 +1,7 @@
 const express = require("express");
 const app = express();
 const path = require("path");
-
-const http = require("http").Server(app);
-const io = require("socket.io")(http);
+const socketIO = require("socket.io");
 
 const {
   getChannels,
@@ -14,22 +12,17 @@ const {
 } = require("./requests");
 const initSocketServer = require("./socket");
 
-setSocketIo(io);
-const forceSSL = function() {
-  return function(req, res, next) {
-    if (req.headers["x-forwarded-proto"] !== "https") {
-      return res.redirect(["https://", req.get("Host"), req.url].join(""));
-    }
-    next();
-  };
-};
+// const forceSSL = function() {
+//   return function(req, res, next) {
+//     if (req.headers["x-forwarded-proto"] !== "https") {
+//       return res.redirect(["https://", req.get("Host"), req.url].join(""));
+//     }
+//     next();
+//   };
+// };
 
-app.use(forceSSL());
+// app.use(forceSSL());
 app.use(express.static(path.join(__dirname, "../dist")));
-
-initSocketServer(io);
-getChannels();
-getLatestData();
 
 app.get("/api/channels", (req, res) => {
   res.send(getStoredChannels());
@@ -43,4 +36,13 @@ app.get("/*", function(req, res) {
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
-http.listen(process.env.PORT || 8000);
+const PORT = process.env.PORT || 8000;
+const server = app.listen(PORT, function() {
+  console.log(`Server listening on port ${PORT}`);
+});
+
+const io = socketIO(server);
+setSocketIo(io);
+initSocketServer(io);
+getChannels();
+getLatestData();
