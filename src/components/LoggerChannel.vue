@@ -27,7 +27,7 @@ export default {
 
       this.data = data
         .map(d => ({
-          time: moment(d.unixtime * 1000).format("hh:mm:ss"),
+          time: moment(d.unixtime * 1000).format("kk:mm:ss"),
           [tempField]: d[ch]
         }))
         .reverse();
