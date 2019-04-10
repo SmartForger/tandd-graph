@@ -16,12 +16,7 @@
 <script>
 import LoggerList from "./components/LoggerList";
 import LoggerChannel from "./components/LoggerChannel";
-import {
-  initSocket,
-  setChannelCallback,
-  getChannels,
-  setSerials
-} from "./socket.js";
+import { initSocket, getSocket } from "./socket.js";
 
 export default {
   name: "app",
@@ -34,9 +29,8 @@ export default {
       loggers: []
     };
   },
-
   methods: {
-    receiveChannels(loggers) {
+    receiveDevices(loggers) {
       let channels = [];
       loggers.forEach(logger => {
         logger.channel.forEach(ch => {
@@ -60,19 +54,21 @@ export default {
     },
     listChanged() {
       setTimeout(() => {
-        setSerials(
-          this.loggers
-            .filter(logger => logger.selected)
-            .map(logger => logger.serial)
-        );
+        const serials = this.loggers
+          .filter(logger => logger.selected)
+          .map(logger => logger.serial);
+
+        getSocket().emit(`serials`, serials);
       }, 100);
     }
   },
-
   mounted() {
     initSocket();
-    setChannelCallback(this.receiveChannels);
-    this.receiveChannels(getChannels());
+
+    const socket = getSocket();
+    socket.on("loggers", loggers => {
+      this.receiveDevices(loggers);
+    });
   }
 };
 </script>

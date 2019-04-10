@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { setDataCallback } from "../socket";
+import { getSocket } from "../socket";
 import * as moment from "moment";
 
 export default {
@@ -25,7 +25,7 @@ export default {
       const ch = this.logger.chId;
       const tempField = `Temp(${this.logger.unit})`;
 
-      this.data = data
+      this.data = data.data
         .map(d => ({
           time: moment(d.unixtime * 1000).format("kk:mm:ss"),
           [tempField]: d[ch]
@@ -34,7 +34,14 @@ export default {
     }
   },
   mounted() {
-    setDataCallback(this.logger.serial, this.logger.chId, this.receiveData);
+    const socket = getSocket();
+    socket.on(`ch:${this.logger.serial}`, this.receiveData);
+    socket.emit("data", this.logger.serial);
+  },
+  beforeDestroy() {
+    const socket = getSocket();
+    socket.removeListener(`ch:${this.logger.serial}`, this.receiveData);
+    socket.emit("");
   }
 };
 </script>

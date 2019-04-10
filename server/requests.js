@@ -1,5 +1,6 @@
 const axios = require("axios");
 const moment = require("moment");
+const _ = require("lodash");
 
 const BASE_URL = "https://api.webstorage-service.com/v1";
 let channels = [];
@@ -21,36 +22,31 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-let channelTimer = null;
-function getChannels() {
-  if (channelTimer) {
-    clearInterval(channelTimer);
-  }
+const getChannels = _.throttle(() => {
+  axios
+    .post(`${BASE_URL}/devices/current`, {
+      "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
+      "login-id": "rdga9751",
+      "login-pass": "eifjN23S"
+    })
+    .then(res => {
+      channels = res.data.devices || [];
 
-  channelTimer = setTimeout(() => {
-    axios
-      .post(`${BASE_URL}/devices/current`, {
-        "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
-        "login-id": "rdga9751",
-        "login-pass": "eifjN23S"
-      })
-      .then(res => {
-        channels = res.data.devices || [];
+      if (sockets) {
+        sockets.emit("loggers", channels);
+      }
 
-        // const resetLimit = +res.headers["x-ratelimit-reset"] || 120;
-        // const limitCount = +res.headers["x-ratelimit-limit"] || 10;
-        // const interval = resetLimit / limitCount;
+      console.log(
+        `fetched channels at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
+      );
+    });
+}, 12000);
 
-        // setTimeout(getChannels, interval * 1000);
+function scheduleGetChannels() {
+  getChannels();
 
-        if (sockets) {
-          sockets.emit("channels", channels);
-        }
-
-        console.log(
-          `fetched channels at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
-        );
-      });
+  setInterval(() => {
+    getChannels();
   }, 120000);
 }
 
@@ -62,50 +58,44 @@ function getStoredChannels() {
   return channels;
 }
 
+function getDataForSerial(serial) {
+  axios
+    .post(`${BASE_URL}/devices/latest-data`, {
+      "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
+      "login-id": "rdga9751",
+      "login-pass": "eifjN23S",
+      "remote-serial": serial
+    })
+    .then(res => {
+      data[serial] = res.data || [];
+      sockets.emit(`ch:${serial}`, res.data);
+    });
+}
+
 let dataTimer = null;
-function getLatestData() {
+function scheduleGetData() {
   if (dataTimer) {
     clearInterval(dataTimer);
   }
 
-  dataTimer = setInterval(() => {
-    Promise.all(
-      serials.map(serial =>
-        axios
-          .post(`${BASE_URL}/devices/latest-data`, {
-            "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
-            "login-id": "rdga9751",
-            "login-pass": "eifjN23S",
-            "remote-serial": serial
-          })
-          .then(res => {
-            data[serial] = res.data || [];
-            sockets.emit(`ch:${serial}`, res.data);
-
-            const resetLimit = +res.headers["x-ratelimit-reset"] || 60;
-            const limitCount = +res.headers["x-ratelimit-limit"] || 60;
-
-            return resetLimit / limitCount;
-          })
-      )
-    ).then(intervals => {
-      // if (intervals.length > 0) {
-      //   let max = 0;
-      //   intervals.forEach(i => {
-      //     max = Math.max(i, max);
-      //   });
-      //   setTimeout(getLatestData, max * intervals.length * 1000);
-      //   console.log(
-      //     `fetched latest data, next fetch in ${max * intervals.length} seconds`
-      //   );
-      // } else {
-      //   setTimeout(getLatestData, 1000);
-      // }
+  const getAllData = () => {
+    Promise.all(serials.map(s => getDataForSerial(s))).then(() => {
       console.log(
-        `data fetched at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
+        `Data fetched at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
       );
     });
-  }, 120000);
+  };
+
+  getAllData();
+  dataTimer = setInterval(getAllData, 120000);
+}
+
+function getStoredData(serial) {
+  if (data[serial]) {
+    return data[serial];
+  }
+  getDataForSerial(serial);
+  return { data: [] };
 }
 
 function setSocketIo(io) {
@@ -114,18 +104,13 @@ function setSocketIo(io) {
 
 function setSerials(list) {
   serials = list;
-  getLatestData();
-}
-
-function getStoredData() {
-  return data;
 }
 
 module.exports = {
   setSocketIo,
   setSerials,
   getStoredChannels,
-  getChannels,
-  getLatestData,
-  getStoredData
+  getStoredData,
+  scheduleGetData,
+  scheduleGetChannels
 };

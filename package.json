@@ -14,6 +14,7 @@
     "bootstrap-vue": "^2.0.0-rc.18",
     "core-js": "^2.6.5",
     "express": "^4.16.4",
+    "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",

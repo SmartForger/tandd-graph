@@ -4,10 +4,10 @@ const path = require("path");
 const socketIO = require("socket.io");
 
 const {
-  getChannels,
-  getStoredChannels,
   setSocketIo,
-  getLatestData,
+  scheduleGetChannels,
+  getStoredChannels,
+  scheduleGetData,
   getStoredData
 } = require("./requests");
 const initSocketServer = require("./socket");
@@ -29,7 +29,8 @@ app.get("/api/channels", (req, res) => {
 });
 
 app.get("/api/data", (req, res) => {
-  res.send(getStoredData());
+  const { serial } = req.query;
+  res.send(getStoredData(serial));
 });
 
 app.get("/*", function(req, res) {
@@ -44,5 +45,5 @@ const server = app.listen(PORT, function() {
 const io = socketIO(server);
 setSocketIo(io);
 initSocketServer(io);
-getChannels();
-getLatestData();
+scheduleGetChannels();
+scheduleGetData();
