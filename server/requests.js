@@ -70,15 +70,14 @@ function getLatestData() {
     )
   ).then(intervals => {
     if (intervals.length > 0) {
-      // let max = 0;
-      // intervals.forEach(i => {
-      //   max = Math.max(i, max);
-      // });
-      // setTimeout(getLatestData, max * intervals.length * 1000);
-      // console.log(
-      //   `fetched latest data, next fetch in ${max * intervals.length} seconds`
-      // );
-      setTimeout(getLatestData, 120000);
+      let max = 0;
+      intervals.forEach(i => {
+        max = Math.max(i, max);
+      });
+      setTimeout(getLatestData, max * intervals.length * 1000);
+      console.log(
+        `fetched latest data, next fetch in ${max * intervals.length} seconds`
+      );
     } else {
       setTimeout(getLatestData, 1000);
     }
