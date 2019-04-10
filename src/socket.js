@@ -1,6 +1,6 @@
 import * as io from "socket.io-client";
 
-let socket = io("http://localhost:8000");
+let socket = io("https://tandd-dev.herokuapp.com");
 
 let storedData = {};
 let channels = [];
