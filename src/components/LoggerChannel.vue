@@ -25,8 +25,8 @@ export default {
       const ch = this.logger.chId;
       const tempField = `Temp(${this.logger.unit})`;
 
-      this.data = data.data.map(d => ({
-        time: moment(d.unixtime * 1000).format("kk:mm:ss"),
+      this.data = data.data.slice(-300).map(d => ({
+        time: moment(d.unixtime * 1000).format("YYYY-MM-DD kk:mm"),
         [tempField]: d[ch]
       }));
     }
@@ -46,9 +46,10 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .logger-channel {
-  width: 200px;
+  width: 260px;
   padding: 40px 10px 10px;
   text-align: center;
+  flex: none;
 }
 h4 {
   margin-bottom: 10px;

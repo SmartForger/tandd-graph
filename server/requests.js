@@ -60,12 +60,16 @@ function getStoredDevices() {
 }
 
 function getDataForSerial(serial) {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10);
+
   axios
-    .post(`${process.env.BASE_URL}/devices/latest-data`, {
+    .post(`${process.env.BASE_URL}/devices/data`, {
       "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
       "login-id": "rdga9751",
       "login-pass": "eifjN23S",
-      "remote-serial": serial
+      "remote-serial": serial,
+      "unixtime-from": d.getTime() / 1000
     })
     .then(res => {
       data[serial] = res.data || [];
