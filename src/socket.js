@@ -1,7 +1,11 @@
 import * as io from "socket.io-client";
 
-// let socket = io("https://tandd-dev.herokuapp.com/");
-let socket = io("http://localhost:8000/");
+const socketURL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:8000/"
+    : "https://tandd-dev.herokuapp.com/";
+
+let socket = io(socketURL);
 
 export const initSocket = () => {
   socket.on("connect", () => {
