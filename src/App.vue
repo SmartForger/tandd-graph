@@ -6,7 +6,7 @@
       </div>
       <div class="col-12 col-md-9 channels">
         <template v-for="(logger, i) in loggers">
-          <LoggerChannel :key="i" :logger="logger" :data="sampleData" v-if="logger.selected"/>
+          <LoggerChannel :key="i" :logger="logger" v-if="logger.selected"/>
         </template>
       </div>
     </div>
@@ -66,7 +66,7 @@ export default {
     initSocket();
 
     const socket = getSocket();
-    socket.on("loggers", loggers => {
+    socket.on("devices", loggers => {
       this.receiveDevices(loggers);
     });
   }

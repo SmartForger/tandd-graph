@@ -25,23 +25,20 @@ export default {
       const ch = this.logger.chId;
       const tempField = `Temp(${this.logger.unit})`;
 
-      this.data = data.data
-        .map(d => ({
-          time: moment(d.unixtime * 1000).format("kk:mm:ss"),
-          [tempField]: d[ch]
-        }))
-        .reverse();
+      this.data = data.data.map(d => ({
+        time: moment(d.unixtime * 1000).format("kk:mm:ss"),
+        [tempField]: d[ch]
+      }));
     }
   },
   mounted() {
     const socket = getSocket();
-    socket.on(`ch:${this.logger.serial}`, this.receiveData);
+    socket.on(`data:${this.logger.serial}`, this.receiveData);
     socket.emit("data", this.logger.serial);
   },
   beforeDestroy() {
     const socket = getSocket();
-    socket.removeListener(`ch:${this.logger.serial}`, this.receiveData);
-    socket.emit("");
+    socket.removeListener(`data:${this.logger.serial}`, this.receiveData);
   }
 };
 </script>

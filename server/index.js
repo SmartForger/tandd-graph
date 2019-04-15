@@ -3,10 +3,12 @@ const app = express();
 const path = require("path");
 const socketIO = require("socket.io");
 
+require("dotenv").config();
+
 const {
   setSocketIo,
-  scheduleGetChannels,
-  getStoredChannels,
+  scheduleGetDevices,
+  getStoredDevices,
   scheduleGetData,
   getStoredData
 } = require("./requests");
@@ -24,8 +26,8 @@ const initSocketServer = require("./socket");
 // app.use(forceSSL());
 app.use(express.static(path.join(__dirname, "../dist")));
 
-app.get("/api/channels", (req, res) => {
-  res.send(getStoredChannels());
+app.get("/api/devices", (req, res) => {
+  res.send(getStoredDevices());
 });
 
 app.get("/api/data", (req, res) => {
@@ -33,9 +35,9 @@ app.get("/api/data", (req, res) => {
   res.send(getStoredData(serial));
 });
 
-app.get("/*", function(req, res) {
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
-});
+// app.get("/*", function(req, res) {
+//   res.sendFile(path.join(__dirname, "../dist/index.html"));
+// });
 
 const PORT = process.env.PORT || 8000;
 const server = app.listen(PORT, function() {
@@ -45,5 +47,5 @@ const server = app.listen(PORT, function() {
 const io = socketIO(server);
 setSocketIo(io);
 initSocketServer(io);
-scheduleGetChannels();
+scheduleGetDevices();
 scheduleGetData();

@@ -2,8 +2,7 @@ const axios = require("axios");
 const moment = require("moment");
 const _ = require("lodash");
 
-const BASE_URL = "https://api.webstorage-service.com/v1";
-let channels = [];
+let devices = [];
 let sockets = null;
 let serials = [];
 let data = {};
@@ -22,45 +21,45 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-const getChannels = _.throttle(() => {
+const getDevices = _.throttle(() => {
   axios
-    .post(`${BASE_URL}/devices/current`, {
-      "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
-      "login-id": "rdga9751",
-      "login-pass": "eifjN23S"
+    .post(`${process.env.BASE_URL}/devices/current`, {
+      "api-key": process.env.API_KEY,
+      "login-id": process.env.LOGIN_ID,
+      "login-pass": process.env.LOGIN_PASS
     })
     .then(res => {
-      channels = res.data.devices || [];
+      devices = res.data.devices || [];
 
       if (sockets) {
-        sockets.emit("loggers", channels);
+        sockets.emit("devices", devices);
       }
 
       console.log(
-        `fetched channels at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
+        `fetched devices at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
       );
     });
 }, 12000);
 
-function scheduleGetChannels() {
-  getChannels();
+function scheduleGetDevices() {
+  getDevices();
 
   setInterval(() => {
-    getChannels();
+    getDevices();
   }, 120000);
 }
 
-function getStoredChannels() {
-  if (channels.length === 0) {
-    getChannels();
+function getStoredDevices() {
+  if (devices.length === 0) {
+    getDevices();
   }
 
-  return channels;
+  return devices;
 }
 
 function getDataForSerial(serial) {
   axios
-    .post(`${BASE_URL}/devices/latest-data`, {
+    .post(`${process.env.BASE_URL}/devices/latest-data`, {
       "api-key": "1berqh6otk5rcupdb8s9mr9db238mo0kplrgcamgm53ff",
       "login-id": "rdga9751",
       "login-pass": "eifjN23S",
@@ -68,7 +67,7 @@ function getDataForSerial(serial) {
     })
     .then(res => {
       data[serial] = res.data || [];
-      sockets.emit(`ch:${serial}`, res.data);
+      sockets.emit(`data:${serial}`, res.data);
     });
 }
 
@@ -81,7 +80,7 @@ function scheduleGetData() {
   const getAllData = () => {
     Promise.all(serials.map(s => getDataForSerial(s))).then(() => {
       console.log(
-        `Data fetched at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
+        `Latest Data fetched at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
       );
     });
   };
@@ -94,6 +93,7 @@ function getStoredData(serial) {
   if (data[serial]) {
     return data[serial];
   }
+
   getDataForSerial(serial);
   return { data: [] };
 }
@@ -109,8 +109,8 @@ function setSerials(list) {
 module.exports = {
   setSocketIo,
   setSerials,
-  getStoredChannels,
+  getStoredDevices,
+  scheduleGetDevices,
   getStoredData,
-  scheduleGetData,
-  scheduleGetChannels
+  scheduleGetData
 };

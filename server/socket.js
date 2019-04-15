@@ -1,11 +1,11 @@
 const { setSerials } = require("./requests");
-const { getStoredChannels, getStoredData } = require("./requests");
+const { getStoredDevices, getStoredData } = require("./requests");
 
 module.exports = function(io) {
   io.on("connection", socket => {
     console.log("A client is connected.");
 
-    socket.emit("loggers", getStoredChannels());
+    socket.emit("devices", getStoredDevices());
 
     socket.on("disconnect", socket => {
       console.log("Client disconnected...");
@@ -16,7 +16,7 @@ module.exports = function(io) {
     });
 
     socket.on("data", serial => {
-      socket.emit(`ch:${serial}`, getStoredData(serial));
+      socket.emit(`data:${serial}`, getStoredData(serial));
     });
   });
 };
