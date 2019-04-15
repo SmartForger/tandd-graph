@@ -29,7 +29,9 @@ const getDevices = _.throttle(() => {
       "login-pass": process.env.LOGIN_PASS
     })
     .then(res => {
-      devices = res.data.devices || [];
+      let temp = res.data.devices || [];
+      refreshData(temp);
+      devices = temp;
 
       if (sockets) {
         sockets.emit("devices", devices);
@@ -78,7 +80,7 @@ function scheduleGetData() {
   }
 
   const getAllData = () => {
-    Promise.all(serials.map(s => getDataForSerial(s))).then(() => {
+    Promise.all(devices.map(d => getDataForSerial(d.serial))).then(() => {
       console.log(
         `Latest Data fetched at ${moment().format("MMM DD, YYYY kk:mm:ss")}`
       );
@@ -87,6 +89,22 @@ function scheduleGetData() {
 
   getAllData();
   dataTimer = setInterval(getAllData, 120000);
+}
+
+function refreshData(list) {
+  list.forEach(d => {
+    const filtered = devices.filter(d1 => d1.serial === d.serial);
+    if (filtered.length === 0) {
+      getDataForSerial(d.serial);
+    }
+  });
+
+  devices.forEach(d => {
+    const filtered = list.filter(d1 => d1.serial === d.serial);
+    if (filtered.length === 0) {
+      delete data[d.serial];
+    }
+  });
 }
 
 function getStoredData(serial) {
