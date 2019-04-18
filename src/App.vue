@@ -1,75 +1,22 @@
 <template>
   <div class="container-fluid" id="app">
-    <div class="row">
-      <div class="col-12 col-md-3">
-        <LoggerList :loggers="loggers" @listChanged="listChanged"/>
-      </div>
-      <div class="col-12 col-md-9 channels">
-        <template v-for="(logger, i) in loggers">
-          <LoggerChannel :key="i" :logger="logger" v-if="logger.selected"/>
-        </template>
-      </div>
-    </div>
+    <ListView v-if="view === 'list'" />
+    <Graph v-if="view === 'graph'" />
   </div>
 </template>
 
 <script>
-import LoggerList from "./components/LoggerList";
-import LoggerChannel from "./components/LoggerChannel";
-import { initSocket, getSocket } from "./socket.js";
+import { mapState } from "vuex";
+import ListView from "./components/ListView";
+import Graph from "./components/Graph";
 
 export default {
   name: "app",
   components: {
-    LoggerList,
-    LoggerChannel
+    ListView,
+    Graph
   },
-  data() {
-    return {
-      loggers: []
-    };
-  },
-  methods: {
-    receiveDevices(loggers) {
-      let channels = [];
-      loggers.forEach(logger => {
-        logger.channel.forEach(ch => {
-          channels.push({
-            name: logger.name,
-            channel: ch.name,
-            chId: `ch${ch.num}`,
-            unit: ch.unit,
-            serial: logger.serial,
-            selected:
-              this.loggers.filter(
-                l =>
-                  l.serial === logger.serial &&
-                  l.channel === ch.name &&
-                  l.selected
-              ).length > 0
-          });
-        });
-      });
-      this.loggers = channels;
-    },
-    listChanged() {
-      setTimeout(() => {
-        const serials = this.loggers
-          .filter(logger => logger.selected)
-          .map(logger => logger.serial);
-
-        getSocket().emit(`serials`, serials);
-      }, 100);
-    }
-  },
-  mounted() {
-    initSocket();
-
-    const socket = getSocket();
-    socket.on("devices", loggers => {
-      this.receiveDevices(loggers);
-    });
-  }
+  computed: mapState(["view"])
 };
 </script>
 
@@ -79,9 +26,5 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-}
-.channels {
-  display: flex;
-  flex-wrap: nowrap;
 }
 </style>

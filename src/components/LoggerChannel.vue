@@ -1,44 +1,60 @@
 <template>
   <div class="logger-channel">
-    <h4>{{logger.name}}</h4>
-    <h4>{{logger.channel}}</h4>
-    <b-table hover :items="data"></b-table>
+    <h4>{{ channel.name }}</h4>
+    <h4>{{ channel.channel }}</h4>
+    <b-form-textarea
+      id="description"
+      :value="channel.description"
+      placeholder="Channel Description..."
+      rows="3"
+      max-rows="3"
+      @change="descriptionChanged"
+    ></b-form-textarea>
+    <b-table hover :items="tableData"></b-table>
   </div>
 </template>
 
 <script>
+import { mapMutations, mapState } from "vuex";
 import { getSocket } from "../socket";
 import * as moment from "moment";
 
 export default {
   name: "LoggerChannel",
   props: {
-    logger: Object
+    channel: Object
   },
-  data() {
-    return {
-      data: []
-    };
+  computed: {
+    ...mapState(["data"]),
+    tableData() {
+      const ch = `ch${this.channel.num}`;
+      const tempField = `Temp(${this.channel.unit})`;
+
+      return this.data[this.channel.serial]
+        ? this.data[this.channel.serial].slice(-300).map(d => ({
+            time: moment(d.unixtime * 1000).format("YYYY-MM-DD kk:mm"),
+            [tempField]: d[ch]
+          }))
+        : [];
+    }
   },
   methods: {
-    receiveData(data) {
-      const ch = this.logger.chId;
-      const tempField = `Temp(${this.logger.unit})`;
-
-      this.data = data.data.slice(-300).map(d => ({
-        time: moment(d.unixtime * 1000).format("YYYY-MM-DD kk:mm"),
-        [tempField]: d[ch]
-      }));
+    ...mapMutations(["setChannelDescription"]),
+    descriptionChanged(val) {
+      this.setChannelDescription({
+        id: this.channel.id,
+        description: val
+      });
     }
   },
   mounted() {
-    const socket = getSocket();
-    socket.on(`data:${this.logger.serial}`, this.receiveData);
-    socket.emit("data", this.logger.serial);
+    // const socket = getSocket();
+    // socket.on(`data:${this.channel.serial}`, this.receiveData);
+    // socket.emit("data", this.channel.serial);
   },
   beforeDestroy() {
-    const socket = getSocket();
-    socket.removeListener(`data:${this.logger.serial}`, this.receiveData);
+    // const socket = getSocket();
+    // socket.removeListener(`data:${this.channel.serial}`, this.receiveData);
   }
 };
 </script>
