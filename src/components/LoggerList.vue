@@ -20,7 +20,7 @@
         <b-form-input
           id="upper_threshold"
           type="number"
-          value=""
+          v-model="upperThreshold"
           @change="changeUpperThreshold"
         ></b-form-input>
       </b-col>
@@ -33,7 +33,7 @@
         <b-form-input
           id="lower_threshold"
           type="number"
-          value=""
+          v-model="lowerThreshold"
           @change="changeLowerThreshold"
         ></b-form-input>
       </b-col>
@@ -42,6 +42,9 @@
       <b-button variant="primary" class="graph-btn" @click="showGraph">
         Graph
       </b-button>
+    </div>
+    <div class="error-text" v-if="error === 1">
+      Please select channels to display!
     </div>
   </div>
 </template>
@@ -52,14 +55,28 @@ import { refreshChannel } from "../socket";
 
 export default {
   name: "LoggerList",
-  computed: mapGetters(["channels"]),
+  computed: mapGetters(["channels", "selectedChannels"]),
+  data() {
+    return {
+      error: 0,
+      upperThreshold: 0,
+      lowerThreshold: 0
+    };
+  },
   methods: {
     ...mapMutations(["toggleChannel", "setView", "setThreshold"]),
     selectChannel(id) {
+      if (this.error === 1) {
+        this.error = 0;
+      }
       this.toggleChannel(id);
       refreshChannel(id);
     },
     showGraph() {
+      if (this.selectedChannels.length === 0) {
+        this.error = 1;
+        return;
+      }
       this.setView("graph");
     },
     changeUpperThreshold(val) {
@@ -101,5 +118,9 @@ li {
   width: 200px;
   font-size: 20px;
   font-weight: bold;
+}
+.error-text {
+  color: red;
+  margin-top: 30px;
 }
 </style>
