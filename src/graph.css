@@ -66,3 +66,29 @@ svg {
   width: 400px;
   font-size: 20px;
 }
+
+.threshold-line {
+  stroke: #4eb297;
+  stroke-width: 2px;
+}
+
+.threshold-area {
+  fill: url(#threshold_gradient);
+}
+
+.threshold-label {
+  fill: white;
+  font-family: "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+}
+
+.th-stop-top,
+.th-stop-bottom {
+  stop-color: #4eb297;
+  stop-opacity: 0.6;
+}
+
+.th-stop-middle {
+  stop-color: #4eb297;
+  stop-opacity: 0.2;
+}

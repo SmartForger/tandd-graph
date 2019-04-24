@@ -55,3 +55,7 @@ export function setView(state, v) {
 export function setThreshold(state, { key, val }) {
   Vue.set(state.threshold, key, +val);
 }
+
+export function setTitle(state, val) {
+  state.title = val;
+}

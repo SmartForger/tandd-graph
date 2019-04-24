@@ -12,11 +12,12 @@ export default {
   name: "Graph",
   computed: {
     ...mapGetters(["selectedChannels"]),
-    ...mapState(["data"])
+    ...mapState(["data", "title", "threshold"])
   },
   data() {
     return {
-      colors: []
+      colors: [],
+      timeframe: []
     };
   },
   methods: {
@@ -24,10 +25,10 @@ export default {
     showList() {
       this.setView("list");
     },
-    makeChart(data) {
+    makeChart() {
       const svgWidth = this.$refs.container.clientWidth;
       const svgHeight = this.$refs.container.clientHeight;
-      const margin = { top: 150, right: 80, bottom: 280, left: 140 };
+      const margin = { top: 150, right: 160, bottom: 280, left: 140 };
       const chartWidth = svgWidth - margin.left - margin.right;
       const chartHeight = svgHeight - margin.top - margin.bottom;
 
@@ -35,20 +36,26 @@ export default {
         const arr = this.data[ch.serial];
         return [arr[0], arr[arr.length - 1]];
       });
+      this.timeframe = d3.extent(d3.merge(extents), d => +d.unixtime * 1000);
       const x = d3
         .scaleTime()
         .range([0, chartWidth])
-        .domain(d3.extent(d3.merge(extents), d => +d.unixtime * 1000));
+        .domain(this.timeframe);
 
       const yextents = this.selectedChannels.map(ch => {
         const arr = this.data[ch.serial];
         const key = "ch" + ch.num;
         return d3.extent(arr, d => (isNaN(d[key]) ? 0 : d[key]));
       });
+      const ydomain = d3.extent([
+        ...d3.merge(yextents, d => (isNaN(d) ? 0 : d)),
+        this.threshold.upper,
+        this.threshold.lower
+      ]);
       const y = d3
         .scaleLinear()
         .range([chartHeight, 0])
-        .domain(d3.extent(d3.merge(yextents, d => (isNaN(d) ? 0 : d))));
+        .domain(ydomain);
 
       const xAxis = d3
         .axisBottom(x)
@@ -67,6 +74,25 @@ export default {
         .append("svg")
         .attr("width", svgWidth)
         .attr("height", svgHeight);
+
+      const svgDefs = svg.append("defs");
+      const thresholdGradient = svgDefs
+        .append("linearGradient")
+        .attr("id", "threshold_gradient")
+        .attr("gradientTransform", "rotate(90)");
+      thresholdGradient
+        .append("stop")
+        .attr("class", "th-stop-top")
+        .attr("offset", "0");
+      thresholdGradient
+        .append("stop")
+        .attr("class", "th-stop-middle")
+        .attr("offset", "0.5");
+      thresholdGradient
+        .append("stop")
+        .attr("class", "th-stop-bottom")
+        .attr("offset", "1");
+
       const container = svg
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -76,7 +102,7 @@ export default {
         .attr("class", "graph-title")
         .attr("x", svgWidth / 2)
         .attr("y", 100)
-        .text("Graph");
+        .text(this.title);
 
       this.addAxesAndLegend(
         container,
@@ -86,7 +112,8 @@ export default {
         chartWidth,
         chartHeight
       );
-      this.drawPaths(container, x, y);
+      this.addThresholdArea(container, y, chartWidth);
+      this.drawPaths(container, x, y, chartWidth);
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -140,7 +167,7 @@ export default {
           .attr("fill", this.colors(i).toString())
           .attr("x", 60)
           .attr("y", 33)
-          .text(`${channel.name} - ${channel.num}`);
+          .text(channel.description);
       });
 
       const cols = Math.ceil(this.selectedChannels.length / 2);
@@ -166,7 +193,46 @@ export default {
         )
         .text(description);
     },
-    drawPaths(svg, x, y) {
+    addThresholdArea(svg, y, chartWidth) {
+      const yUpper = y(this.threshold.upper);
+      const yLower = y(this.threshold.lower);
+
+      svg
+        .append("rect")
+        .attr("class", "threshold-area")
+        .attr("x", 0)
+        .attr("y", yUpper)
+        .attr("width", chartWidth)
+        .attr("height", yLower - yUpper)
+        .attr("fill", "white");
+      svg
+        .append("line")
+        .attr("class", "threshold-line")
+        .attr("x1", 0)
+        .attr("y1", yLower)
+        .attr("x2", chartWidth + 80)
+        .attr("y2", yLower);
+      svg
+        .append("line")
+        .attr("class", "threshold-line")
+        .attr("x1", 0)
+        .attr("y1", yUpper)
+        .attr("x2", chartWidth + 80)
+        .attr("y2", yUpper);
+      svg
+        .append("text")
+        .attr("class", "threshold-label")
+        .attr("x", 50)
+        .attr("y", yUpper-3)
+        .text(this.threshold.upper + " °C");
+      svg
+        .append("text")
+        .attr("class", "threshold-label")
+        .attr("x", 50)
+        .attr("y", yLower-3)
+        .text(this.threshold.lower + " °C");
+    },
+    drawPaths(svg, x, y, chartWidth) {
       this.selectedChannels.forEach((ch, i) => {
         const key = "ch" + ch.num;
 
@@ -186,8 +252,6 @@ export default {
     }
   },
   mounted() {
-    const parseDate = d3.timeParse("%Y-%m-%d");
-
     this.makeChart();
   }
 };

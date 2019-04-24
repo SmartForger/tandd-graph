@@ -17,7 +17,8 @@ const state = {
     lower: 0
   },
   startTime: 0,
-  endTime: 0
+  endTime: 0,
+  title: ""
 };
 
 const store = new Vuex.Store({

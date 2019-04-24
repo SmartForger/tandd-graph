@@ -4,15 +4,14 @@
     <ul>
       <li :key="i" v-for="(channel, i) in channels">
         <b-form-checkbox
-          :id="`checkbox-${i}`"
+          :id="checkbox(i)"
           :checked="channel.selected"
           :name="channel.id"
           @change="selectChannel(channel.id)"
-          >{{ channel.label }}</b-form-checkbox
-        >
+        >{{ channel.label }}</b-form-checkbox>
       </li>
     </ul>
-    <b-row class="threshold">
+    <b-row class="input-row">
       <b-col sm="6">
         <label for="upper_threshold">Upper Threshold</label>
       </b-col>
@@ -20,12 +19,12 @@
         <b-form-input
           id="upper_threshold"
           type="number"
-          v-model="upperThreshold"
+          :value="threshold.upper"
           @change="changeUpperThreshold"
         ></b-form-input>
       </b-col>
     </b-row>
-    <b-row class="threshold">
+    <b-row class="input-row">
       <b-col sm="6">
         <label for="lower_threshold">Lower Threshold</label>
       </b-col>
@@ -33,38 +32,45 @@
         <b-form-input
           id="lower_threshold"
           type="number"
-          v-model="lowerThreshold"
+          :value="threshold.lower"
           @change="changeLowerThreshold"
         ></b-form-input>
       </b-col>
     </b-row>
+    <hr>
+    <b-row class="input-row">
+      <b-col sm="6">
+        <label for="title">Title</label>
+      </b-col>
+      <b-col sm="6">
+        <b-form-input id="title" :value="title" @change="changeTitle"></b-form-input>
+      </b-col>
+    </b-row>
+    <hr>
     <div class="graph-btn-wrapper">
-      <b-button variant="primary" class="graph-btn" @click="showGraph">
-        Graph
-      </b-button>
+      <b-button variant="primary" class="graph-btn" @click="showGraph">Graph</b-button>
     </div>
-    <div class="error-text" v-if="error === 1">
-      Please select channels to display!
-    </div>
+    <div class="error-text" v-if="error === 1">Please select channels to display!</div>
   </div>
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapState } from "vuex";
 import { refreshChannel } from "../socket";
 
 export default {
   name: "LoggerList",
-  computed: mapGetters(["channels", "selectedChannels"]),
+  computed: {
+    ...mapGetters(["channels", "selectedChannels"]),
+    ...mapState(["title", "threshold"])
+  },
   data() {
     return {
-      error: 0,
-      upperThreshold: 0,
-      lowerThreshold: 0
+      error: 0
     };
   },
   methods: {
-    ...mapMutations(["toggleChannel", "setView", "setThreshold"]),
+    ...mapMutations(["toggleChannel", "setView", "setThreshold", "setTitle"]),
     selectChannel(id) {
       if (this.error === 1) {
         this.error = 0;
@@ -84,6 +90,12 @@ export default {
     },
     changeLowerThreshold(val) {
       this.setThreshold({ key: "lower", val });
+    },
+    changeTitle(val) {
+      this.setTitle(val);
+    },
+    checkbox(i) {
+      return `checkbox-${i}`;
     }
   }
 };
@@ -106,8 +118,11 @@ li {
   padding: 16px 0 0;
   font-size: 16px;
 }
-.threshold {
+.input-row {
   margin-top: 16px;
+}
+.input-row label {
+  padding-top: 6px;
 }
 .graph-btn-wrapper {
   margin-top: 50px;

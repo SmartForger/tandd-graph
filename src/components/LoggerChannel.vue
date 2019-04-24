@@ -2,21 +2,18 @@
   <div class="logger-channel">
     <h4>{{ channel.name }}</h4>
     <h4>{{ channel.channel }}</h4>
-    <b-form-textarea
+    <b-form-input
       id="description"
       :value="channel.description"
       placeholder="Channel Description..."
-      rows="3"
-      max-rows="3"
       @change="descriptionChanged"
-    ></b-form-textarea>
+    ></b-form-input>
     <b-table hover :items="tableData"></b-table>
   </div>
 </template>
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import { getSocket } from "../socket";
 import * as moment from "moment";
 
 export default {
