@@ -1,6 +1,8 @@
 <template>
   <div class="row" id="graph_view" ref="container">
-    <b-button class="close-btn" variant="outline-info" @click="showList">&times;</b-button>
+    <b-button class="close-btn" variant="outline-info" @click="showList"
+      >&times;</b-button
+    >
   </div>
 </template>
 
@@ -12,7 +14,7 @@ export default {
   name: "Graph",
   computed: {
     ...mapGetters(["selectedChannels"]),
-    ...mapState(["data", "title", "threshold"])
+    ...mapState(["data", "title", "description", "threshold"])
   },
   data() {
     return {
@@ -113,7 +115,7 @@ export default {
         chartHeight
       );
       this.addThresholdArea(container, y, chartWidth);
-      this.drawPaths(container, x, y, chartWidth);
+      this.drawPaths(container, x, y);
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -157,14 +159,14 @@ export default {
 
         legend
           .append("rect")
-          .attr("fill", this.colors(i).toString())
+          .attr("fill", channel.color || this.colors(i).toString())
           .attr("width", 40)
           .attr("height", 40);
 
         legend
           .append("text")
           .attr("class", "legend-text")
-          .attr("fill", this.colors(i).toString())
+          .attr("fill", channel.color || this.colors(i).toString())
           .attr("x", 60)
           .attr("y", 33)
           .text(channel.description);
@@ -178,9 +180,10 @@ export default {
         .attr("height", 120)
         .attr("x", cols * 360);
 
-      const text =
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-      const description = text.length > 160 ? text.slice(0, 160) + "..." : text;
+      const description =
+        this.description.length > 160
+          ? this.description.slice(0, 160) + "..."
+          : this.description;
       d3.select("#graph_view")
         .append("div")
         .attr("class", "description")
@@ -223,16 +226,16 @@ export default {
         .append("text")
         .attr("class", "threshold-label")
         .attr("x", 50)
-        .attr("y", yUpper-3)
+        .attr("y", yUpper - 8)
         .text(this.threshold.upper + " °C");
       svg
         .append("text")
         .attr("class", "threshold-label")
         .attr("x", 50)
-        .attr("y", yLower-3)
+        .attr("y", yLower - 8)
         .text(this.threshold.lower + " °C");
     },
-    drawPaths(svg, x, y, chartWidth) {
+    drawPaths(svg, x, y) {
       this.selectedChannels.forEach((ch, i) => {
         const key = "ch" + ch.num;
 
@@ -246,7 +249,7 @@ export default {
           .append("path")
           .data([this.data[ch.serial]])
           .attr("class", "median-line")
-          .attr("stroke", this.colors(i))
+          .attr("stroke", ch.color || this.colors(i))
           .attr("d", line);
       });
     }

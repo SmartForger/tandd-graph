@@ -44,5 +44,6 @@ export default {
   min-width: 320px;
   width: 33%;
   height: 100%;
+  overflow-y: auto;
 }
 </style>

@@ -5,24 +5,31 @@ export function setChannels(state, loggers) {
 
   loggers.forEach(logger => {
     logger.channel.forEach(ch => {
-      channels.push({
+      const chInfo = {
         id: `ch_${logger.serial}_${ch.num}`,
         name: logger.name,
         serial: logger.serial,
         channel: ch.name,
         num: ch.num,
         unit: ch.unit
-      });
+      };
+      const ch1 = state.channels.find(c => c.id === chInfo.id);
+      if (ch1) {
+        chInfo.description = ch1.description;
+        chInfo.color = ch1.color;
+      }
+
+      channels.push(chInfo);
     });
   });
 
   state.channels = channels;
 }
 
-export function setChannelDescription(state, { id, description }) {
+export function setChannelAttribute(state, { id, attr, value }) {
   const channels = state.channels.filter(ch => ch.id === id);
   if (channels[0]) {
-    channels[0].description = description;
+    Vue.set(channels[0], attr, value);
   }
 }
 
@@ -58,4 +65,8 @@ export function setThreshold(state, { key, val }) {
 
 export function setTitle(state, val) {
   state.title = val;
+}
+
+export function setDescription(state, val) {
+  state.description = val;
 }

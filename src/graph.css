@@ -7,6 +7,7 @@ svg {
   fill: none;
   stroke: #1e4a64;
   shape-rendering: crispEdges;
+  stroke-width: 2px;
 }
 
 .axis text {
@@ -18,34 +19,10 @@ svg {
   stroke: #1e4a64;
 }
 
-.area {
-  stroke-width: 1;
-}
-
-.area.outer,
-.legend .outer {
-  fill: rgba(230, 230, 255, 0.8);
-  stroke: rgba(216, 216, 255, 0.8);
-}
-
-.area.inner,
-.legend .inner {
-  fill: rgba(127, 127, 255, 0.8);
-  stroke: rgba(96, 96, 255, 0.8);
-}
-
 .median-line,
 .legend .median-line {
   fill: none;
-  stroke-width: 1;
-}
-
-.legend text {
-  font-weight: bold;
-}
-
-.marker text {
-  text-anchor: middle;
+  stroke-width: 3;
 }
 
 .graph-title {
@@ -69,7 +46,7 @@ svg {
 
 .threshold-line {
   stroke: #4eb297;
-  stroke-width: 2px;
+  stroke-width: 5px;
 }
 
 .threshold-area {

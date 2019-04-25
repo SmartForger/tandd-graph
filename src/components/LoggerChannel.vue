@@ -8,7 +8,15 @@
       placeholder="Channel Description..."
       @change="descriptionChanged"
     ></b-form-input>
+    <b-form-select
+      class="mt-10"
+      :value="channel.color"
+      :options="colors"
+      placeholder="Select a color"
+      @change="selectColor"
+    ></b-form-select>
     <b-table hover :items="tableData"></b-table>
+    <span class="more" v-if="more">...</span>
   </div>
 </template>
 
@@ -27,31 +35,52 @@ export default {
       const ch = `ch${this.channel.num}`;
       const tempField = `Temp(${this.channel.unit})`;
 
-      return this.data[this.channel.serial]
-        ? this.data[this.channel.serial].slice(-300).map(d => ({
-            time: moment(d.unixtime * 1000).format("YYYY-MM-DD kk:mm"),
-            [tempField]: d[ch]
-          }))
+      const chData = this.data[this.channel.serial];
+      if (chData.length > 300) {
+        this.more = true;
+      } else {
+        this.more = false;
+      }
+
+      return chData
+        ? chData
+            .slice(-300)
+            .map(d => ({
+              time: moment(d.unixtime * 1000).format("YYYY-MM-DD kk:mm"),
+              [tempField]: d[ch]
+            }))
+            .reverse()
         : [];
     }
   },
+  data() {
+    return {
+      colors: [
+        { value: "#5fc2a0", text: "TemperPack" },
+        { value: "#fcb13b", text: "Yellow" },
+        { value: "#d95a4d", text: "Red" },
+        { value: "#04658d", text: "Blue" },
+        { value: "#e6e7e8", text: "Light Grey" }
+      ],
+      more: false
+    };
+  },
   methods: {
-    ...mapMutations(["setChannelDescription"]),
+    ...mapMutations(["setChannelAttribute"]),
     descriptionChanged(val) {
-      this.setChannelDescription({
+      this.setChannelAttribute({
         id: this.channel.id,
-        description: val
+        attr: "description",
+        value: val
+      });
+    },
+    selectColor(color) {
+      this.setChannelAttribute({
+        id: this.channel.id,
+        attr: "color",
+        value: color
       });
     }
-  },
-  mounted() {
-    // const socket = getSocket();
-    // socket.on(`data:${this.channel.serial}`, this.receiveData);
-    // socket.emit("data", this.channel.serial);
-  },
-  beforeDestroy() {
-    // const socket = getSocket();
-    // socket.removeListener(`data:${this.channel.serial}`, this.receiveData);
   }
 };
 </script>
@@ -74,5 +103,16 @@ ul {
 li {
   padding: 16px 0 0;
   font-size: 16px;
+}
+.mt-10 {
+  margin-top: 10px;
+}
+.more {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1.1em;
+  margin-top: -20px;
+  margin-bottom: 30px;
 }
 </style>
