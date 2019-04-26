@@ -34,14 +34,7 @@ export default {
     tableData() {
       const ch = `ch${this.channel.num}`;
       const tempField = `Temp(${this.channel.unit})`;
-
       const chData = this.data[this.channel.serial];
-      if (chData.length > 300) {
-        this.more = true;
-      } else {
-        this.more = false;
-      }
-
       return chData
         ? chData
             .slice(-300)
@@ -51,6 +44,16 @@ export default {
             }))
             .reverse()
         : [];
+    }
+  },
+  watch: {
+    data(val) {
+      const chData = val[this.channel.serial];
+      if (chData && chData.length > 300) {
+        this.more = true;
+      } else {
+        this.more = false;
+      }
     }
   },
   data() {

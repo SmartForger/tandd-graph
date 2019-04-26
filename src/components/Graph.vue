@@ -116,6 +116,7 @@ export default {
       );
       this.addThresholdArea(container, y, chartWidth);
       this.drawPaths(container, x, y);
+      this.addDragEvents(svg);
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -234,6 +235,21 @@ export default {
         .attr("x", 50)
         .attr("y", yLower - 8)
         .text(this.threshold.lower + " °C");
+    },
+    addDragEvents(svg) {
+      const dragBehavior = d3
+        .drag()
+        .on("start", function(d) {
+          console.log("start", d3.event.x, d3.event.y);
+        })
+        .on("drag", function(d) {
+          console.log("drag", d3.event.x, d3.event.y);
+        })
+        .on("end", function(d) {
+          console.log("end", d3.event.x, d3.event.y);
+        });
+
+      svg.call(dragBehavior);
     },
     drawPaths(svg, x, y) {
       this.selectedChannels.forEach((ch, i) => {
