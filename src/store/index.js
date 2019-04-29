@@ -12,6 +12,7 @@ const state = {
   channels: [],
   selected: [],
   data: {},
+  dataUpdated: 0,
   threshold: {
     upper: 0,
     lower: 0

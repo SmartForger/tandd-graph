@@ -8,8 +8,7 @@
           :checked="channel.selected"
           :name="channel.id"
           @change="selectChannel(channel.id)"
-          >{{ channel.label }}</b-form-checkbox
-        >
+        >{{ channel.label }}</b-form-checkbox>
       </li>
     </ul>
     <b-row class="input-row">
@@ -38,53 +37,32 @@
         ></b-form-input>
       </b-col>
     </b-row>
-    <hr />
+    <hr>
     <div class="input-row">
       <label for="title">Title</label>
-      <b-form-input
-        id="title"
-        :value="title"
-        @change="changeTitle"
-      ></b-form-input>
+      <b-form-input id="title" :value="title" @change="changeTitle"></b-form-input>
     </div>
     <div class="input-row">
       <label for="description">Description</label>
-      <b-form-textarea
-        id="description"
-        :value="description"
-        rows="3"
-        @change="changeDescription"
-      ></b-form-textarea>
+      <b-form-textarea id="description" :value="description" rows="3" @change="changeDescription"></b-form-textarea>
     </div>
-    <hr />
+    <hr>
     <div class="graph-btn-wrapper">
-      <b-button variant="primary" class="graph-btn" @click="showGraph">
-        Graph
-      </b-button>
+      <b-button variant="primary" class="graph-btn" @click="showGraph">Graph</b-button>
     </div>
     <ul class="errors">
       <template v-for="(error, i) in errors">
-        <li class="error-text" v-if="error === 1">
-          Please select channels to display.
-        </li>
-        <li class="error-text" v-if="error === 2">
-          Please enter valid thresholds.
-        </li>
-        <li class="error-text" v-if="error === 3">
-          Upper threshould should be greater than or equal to lower threshold.
-        </li>
-        <li class="error-text" v-if="error === 4">
-          Please enter graph title.
-        </li>
-        <li class="error-text" v-if="error === 6">
-          Please enter graph description.
-        </li>
-        <li class="error-text" v-if="error === 6">
-          Please enter channel descriptions.
-        </li>
-        <li class="error-text" v-if="error === 7">
-          Please select channel colors.
-        </li>
+        <li class="error-text" :key="i" v-if="error === 1">Please select channels to display.</li>
+        <li class="error-text" :key="i" v-if="error === 2">Please enter valid thresholds.</li>
+        <li
+          class="error-text"
+          :key="i"
+          v-if="error === 3"
+        >Upper threshould should be greater than or equal to lower threshold.</li>
+        <li class="error-text" :key="i" v-if="error === 4">Please enter graph title.</li>
+        <li class="error-text" :key="i" v-if="error === 6">Please enter graph description.</li>
+        <li class="error-text" :key="i" v-if="error === 6">Please enter channel descriptions.</li>
+        <li class="error-text" :key="i" v-if="error === 7">Please select channel colors.</li>
       </template>
     </ul>
   </div>

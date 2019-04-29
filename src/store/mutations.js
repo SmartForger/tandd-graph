@@ -35,6 +35,7 @@ export function setChannelAttribute(state, { id, attr, value }) {
 
 export function setData(state, { serial, data }) {
   Vue.set(state.data, serial, data);
+  state.dataUpdated = 1 - state.dataUpdated;
 }
 
 export function setEndTime(state, time) {

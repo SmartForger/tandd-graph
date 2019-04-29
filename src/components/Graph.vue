@@ -1,26 +1,33 @@
 <template>
   <div class="row" id="graph_view" ref="container">
-    <b-button class="close-btn" variant="outline-info" @click="showList"
-      >&times;</b-button
-    >
+    <b-button class="close-btn" variant="outline-info" @click="showList">&times;</b-button>
   </div>
 </template>
 
 <script>
 import * as d3 from "d3";
 import { mapMutations, mapGetters, mapState } from "vuex";
+import _ from "lodash";
 
 export default {
   name: "Graph",
   computed: {
     ...mapGetters(["selectedChannels"]),
-    ...mapState(["data", "title", "description", "threshold"])
+    ...mapState(["data", "dataUpdated", "title", "description", "threshold"])
   },
   data() {
     return {
       colors: [],
-      timeframe: []
+      timeframe: [],
+      container: null,
+      x: null,
+      y: null
     };
+  },
+  watch: {
+    dataUpdated() {
+      this.debouncedMakeChart();
+    }
   },
   methods: {
     ...mapMutations(["setView"]),
@@ -71,6 +78,8 @@ export default {
         .tickPadding(20)
         .tickFormat(d => d + " °C");
 
+      d3.select("#graph_view svg").remove();
+
       const svg = d3
         .select("#graph_view")
         .append("svg")
@@ -116,7 +125,6 @@ export default {
       );
       this.addThresholdArea(container, y, chartWidth);
       this.drawPaths(container, x, y);
-      this.addDragEvents(svg);
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -191,9 +199,9 @@ export default {
         .attr(
           "style",
           `
-          left: ${cols * 360 + 120}px;
-          top: ${chartHeight + 250}px;
-        `
+            left: ${cols * 360 + 120}px;
+            top: ${chartHeight + 250}px;
+          `
         )
         .text(description);
     },
@@ -236,21 +244,6 @@ export default {
         .attr("y", yLower - 8)
         .text(this.threshold.lower + " °C");
     },
-    addDragEvents(svg) {
-      const dragBehavior = d3
-        .drag()
-        .on("start", function(d) {
-          console.log("start", d3.event.x, d3.event.y);
-        })
-        .on("drag", function(d) {
-          console.log("drag", d3.event.x, d3.event.y);
-        })
-        .on("end", function(d) {
-          console.log("end", d3.event.x, d3.event.y);
-        });
-
-      svg.call(dragBehavior);
-    },
     drawPaths(svg, x, y) {
       this.selectedChannels.forEach((ch, i) => {
         const key = "ch" + ch.num;
@@ -271,6 +264,7 @@ export default {
     }
   },
   mounted() {
+    this.debouncedMakeChart = _.debounce(this.makeChart, 3000);
     this.makeChart();
   }
 };
