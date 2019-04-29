@@ -79,6 +79,7 @@ export default {
         .tickFormat(d => d + " °C");
 
       d3.select("#graph_view svg").remove();
+      d3.select(".description").remove();
 
       const svg = d3
         .select("#graph_view")
