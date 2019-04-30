@@ -1,6 +1,8 @@
 <template>
   <div class="row" id="graph_view" ref="container">
     <b-button class="close-btn" variant="outline-info" @click="showList">&times;</b-button>
+    <LastDataPoint :x="bubbleX" :y="bubbleY" :bubblePos="bubblePos"/>
+    <Legend :x="30" :y="ybottom"/>
   </div>
 </template>
 
@@ -9,19 +11,27 @@ import * as d3 from "d3";
 import { mapMutations, mapGetters, mapState } from "vuex";
 import _ from "lodash";
 
+import LastDataPoint from "./LastDataPoint";
+import Legend from "./Legend";
+
 export default {
   name: "Graph",
+  components: {
+    LastDataPoint,
+    Legend
+  },
   computed: {
     ...mapGetters(["selectedChannels"]),
     ...mapState(["data", "dataUpdated", "title", "description", "threshold"])
   },
   data() {
     return {
-      colors: [],
       timeframe: [],
-      container: null,
-      x: null,
-      y: null
+      ytop: 0,
+      ybottom: 0,
+      bubbleX: 0,
+      bubbleY: 0,
+      bubblePos: "top"
     };
   },
   watch: {
@@ -79,7 +89,6 @@ export default {
         .tickFormat(d => d + " °C");
 
       d3.select("#graph_view svg").remove();
-      d3.select(".description").remove();
 
       const svg = d3
         .select("#graph_view")
@@ -126,6 +135,7 @@ export default {
       );
       this.addThresholdArea(container, y, chartWidth);
       this.drawPaths(container, x, y);
+      this.addDataPoint(container, chartWidth);
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -151,60 +161,6 @@ export default {
         .attr("class", "domain")
         .attr("d", `M0.5,${chartHeight + 80}V0.5`)
         .attr("transform", "translate(-80, 0)");
-
-      this.colors = d3.scaleOrdinal(d3.schemeAccent);
-
-      const legendContainer = svg
-        .append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(-80, ${chartHeight + 100})`);
-
-      this.selectedChannels.forEach((channel, i) => {
-        const col = Math.floor(i / 2);
-        const row = i % 2;
-
-        const legend = legendContainer
-          .append("g")
-          .attr("transform", `translate(${col * 360}, ${row * 80})`);
-
-        legend
-          .append("rect")
-          .attr("fill", channel.color || this.colors(i).toString())
-          .attr("width", 40)
-          .attr("height", 40);
-
-        legend
-          .append("text")
-          .attr("class", "legend-text")
-          .attr("fill", channel.color || this.colors(i).toString())
-          .attr("x", 60)
-          .attr("y", 33)
-          .text(channel.description);
-      });
-
-      const cols = Math.ceil(this.selectedChannels.length / 2);
-      legendContainer
-        .append("rect")
-        .attr("fill", "#2d668e")
-        .attr("width", 5)
-        .attr("height", 120)
-        .attr("x", cols * 360);
-
-      const description =
-        this.description.length > 160
-          ? this.description.slice(0, 160) + "..."
-          : this.description;
-      d3.select("#graph_view")
-        .append("div")
-        .attr("class", "description")
-        .attr(
-          "style",
-          `
-            left: ${cols * 360 + 120}px;
-            top: ${chartHeight + 250}px;
-          `
-        )
-        .text(description);
     },
     addThresholdArea(svg, y, chartWidth) {
       const yUpper = y(this.threshold.upper);
@@ -246,7 +202,9 @@ export default {
         .text(this.threshold.lower + " °C");
     },
     drawPaths(svg, x, y) {
-      this.selectedChannels.forEach((ch, i) => {
+      this.ytop = 0;
+      this.ybottom = 0;
+      this.selectedChannels.forEach(ch => {
         const key = "ch" + ch.num;
 
         const line = d3
@@ -255,13 +213,74 @@ export default {
           .x(d => x(d.unixtime * 1000))
           .y(d => (isNaN(d[key]) ? y(0) : y(d[key])));
 
+        const arr = this.data[ch.serial];
+        const lastData = arr[arr.length - 1];
+        const lastY = y(lastData[key]);
+        if (this.ytop === 0 || this.ytop > lastY) {
+          this.ytop = lastY;
+        }
+        if (this.ybottom < lastY) {
+          this.ybottom = lastY;
+        }
+
         svg
           .append("path")
-          .data([this.data[ch.serial]])
+          .data([arr])
           .attr("class", "median-line")
-          .attr("stroke", ch.color || this.colors(i))
+          .attr("stroke", ch.color)
           .attr("d", line);
+
+        svg
+          .append("circle")
+          .attr("cx", x(lastData.unixtime * 1000))
+          .attr("cy", lastY)
+          .attr("r", 5)
+          .attr("stroke-width", 3)
+          .attr("stroke", ch.color)
+          .attr("fill", "rgba(255,255,255,0.8)");
       });
+    },
+    addDataPoint(svg, chartWidth) {
+      const r = 20;
+      const el = document.querySelector(".last-data-point");
+      const w = el.clientWidth - 10;
+      const h = el.clientHeight - 20;
+
+      const g = svg.append("g");
+      if (this.ytop < 200) {
+        g.attr("transform", `translate(${chartWidth}, ${this.ybottom + 10})`);
+        g.append("path")
+          .attr("class", "last-data-point revert")
+          .attr(
+            "d",
+            `
+              m 0,0 l -${r / 2},${r}
+              l -${w + r / 2},0 a ${r} ${r} 90 0 0 -${r} ${r}
+              l 0,${h} a ${r} ${r} 90 0 0 ${r} ${r}
+              l ${w},0 a ${r} ${r} 90 0 0 ${r} -${r}
+              l 0, -${h + r * 3}
+            `
+          );
+        this.bubbleY = this.ybottom + 150;
+        this.bubblePos = "bottom";
+      } else {
+        g.attr("transform", `translate(${chartWidth}, ${this.ytop - 10})`);
+        g.append("path")
+          .attr("class", "last-data-point revert")
+          .attr(
+            "d",
+            `
+              m 0,0 l -${r / 2},-${r}
+              l -${w + r / 2},0 a ${r} ${r} 90 0 1 -${r} -${r}
+              l 0,-${h} a ${r} ${r} 90 0 1 ${r} -${r}
+              l ${w},0 a ${r} ${r} 90 0 1 ${r} ${r}
+              l 0, ${h + r * 3}
+            `
+          );
+        this.bubbleY = this.ytop + 150;
+        this.bubblePos = "top";
+      }
+      this.bubbleX = chartWidth + 140;
     }
   },
   mounted() {

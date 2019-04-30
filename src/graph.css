@@ -32,18 +32,6 @@ svg {
   transform: translateX(-100px);
 }
 
-.legend-text {
-  font-family: "Open Sans", "Helvetica Neue", sans-serif;
-  font-size: 36px;
-}
-
-.description {
-  color: white;
-  position: absolute;
-  width: 400px;
-  font-size: 20px;
-}
-
 .threshold-line {
   stroke: #4eb297;
   stroke-width: 5px;
@@ -68,4 +56,8 @@ svg {
 .th-stop-middle {
   stop-color: #4eb297;
   stop-opacity: 0.2;
+}
+
+.last-data-point {
+  fill: white;
 }
