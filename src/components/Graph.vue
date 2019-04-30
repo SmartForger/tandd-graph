@@ -1,5 +1,6 @@
 <template>
   <div class="row" id="graph_view" ref="container">
+    <div class="graph-title">{{ title }}</div>
     <b-button class="close-btn" variant="outline-info" @click="showList">&times;</b-button>
     <LastDataPoint :x="bubbleX" :y="bubbleY" :bubblePos="bubblePos"/>
     <Legend :x="30" :y="ybottom"/>
@@ -117,13 +118,6 @@ export default {
       const container = svg
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      svg
-        .append("text")
-        .attr("class", "graph-title")
-        .attr("x", svgWidth / 2)
-        .attr("y", 100)
-        .text(this.title);
 
       this.addAxesAndLegend(
         container,
@@ -304,5 +298,13 @@ export default {
 }
 .white {
   color: white;
+}
+.graph-title {
+  color: white;
+  font-family: "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 72px;
+  position: absolute;
+  text-align: center;
+  width: 100%;
 }
 </style>

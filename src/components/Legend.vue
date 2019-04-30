@@ -6,7 +6,6 @@
         <div class="name" :style="{color: channel.color}">{{ channel.name }}</div>
       </div>
     </div>
-    <div class="br"/>
     <div class="description">{{description}}</div>
   </div>
 </template>
@@ -74,7 +73,7 @@ export default {
 .color-box {
   width: 40px;
   height: 40px;
-  margin-right: 10px;
+  margin-right: 24px;
 }
 .name {
   font-family: "Open Sans", "Helvetica Neue", sans-serif;
@@ -86,12 +85,8 @@ export default {
   font-size: 20px;
   flex: 1;
   margin-top: 8px;
-}
-.br {
-  width: 5px;
-  height: 120px;
-  background-color: #2d668e;
+  padding-left: 50px;
+  border-left: 5px solid #2d668e;
   margin-left: 30px;
-  margin-right: 50px;
 }
 </style>

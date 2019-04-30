@@ -25,13 +25,6 @@ svg {
   stroke-width: 3;
 }
 
-.graph-title {
-  fill: white;
-  font-family: "Open Sans", "Helvetica Neue", sans-serif;
-  font-size: 72px;
-  transform: translateX(-100px);
-}
-
 .threshold-line {
   stroke: #4eb297;
   stroke-width: 5px;
