@@ -84,7 +84,7 @@ export default {
 .description {
   color: white;
   font-size: 20px;
-  flex: 0;
+  flex: 1;
   margin-top: 8px;
 }
 .br {
