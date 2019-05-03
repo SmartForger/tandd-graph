@@ -33,7 +33,8 @@ export default {
       bubbleX: 0,
       bubbleY: 0,
       bubblePos: "top",
-      svgdefs: null
+      svgdefs: null,
+      shouldAnimate: true
     };
   },
   watch: {
@@ -120,6 +121,18 @@ export default {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+      const clip = container.append("clipPath").attr("id", "clip");
+      const clipRect = clip
+        .append("rect")
+        .attr("width", this.shouldAnimate ? 0 : chartWidth + 80)
+        .attr("height", chartHeight + 100)
+        .attr("x", 0)
+        .attr("y", -80);
+
+      const chartContainer = container
+        .append("g")
+        .attr("clip-path", "url(#clip)");
+
       this.addAxesAndLegend(
         container,
         xAxis,
@@ -128,9 +141,22 @@ export default {
         chartWidth,
         chartHeight
       );
-      this.addThresholdArea(container, y, chartWidth);
-      this.drawPaths(container, x, y);
-      this.addDataPoint(container, chartWidth);
+      this.addThresholdArea(chartContainer, y, chartWidth);
+      this.drawPaths(chartContainer, x, y);
+      setTimeout(
+        () => {
+          this.addDataPoint(container, chartWidth);
+        },
+        this.shouldAnimate ? 3000 : 300
+      );
+      if (this.shouldAnimate) {
+        clipRect
+          .transition()
+          .duration(3000)
+          .ease(d3.easeLinear)
+          .attr("width", chartWidth + 80);
+        this.shouldAnimate = false;
+      }
     },
     addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       const axes = svg.append("g");
@@ -161,7 +187,9 @@ export default {
       const yUpper = y(this.threshold.upper);
       const yLower = y(this.threshold.lower);
 
-      svg
+      const thresholdArea = svg.append("g");
+
+      thresholdArea
         .append("rect")
         .attr("class", "threshold-area")
         .attr("x", 0)
@@ -169,27 +197,27 @@ export default {
         .attr("width", chartWidth)
         .attr("height", yLower - yUpper)
         .attr("fill", "white");
-      svg
+      thresholdArea
         .append("line")
         .attr("class", "threshold-line")
         .attr("x1", 0)
         .attr("y1", yLower)
         .attr("x2", chartWidth + 80)
         .attr("y2", yLower);
-      svg
+      thresholdArea
         .append("line")
         .attr("class", "threshold-line")
         .attr("x1", 0)
         .attr("y1", yUpper)
         .attr("x2", chartWidth + 80)
         .attr("y2", yUpper);
-      svg
+      thresholdArea
         .append("text")
         .attr("class", "threshold-label")
         .attr("x", 50)
         .attr("y", yUpper - 8)
         .text(this.threshold.upper + " °C");
-      svg
+      thresholdArea
         .append("text")
         .attr("class", "threshold-label")
         .attr("x", 50)
@@ -220,19 +248,10 @@ export default {
 
         svg
           .append("path")
-          .data([arr])
+          .datum(arr)
           .attr("class", "median-line")
           .attr("stroke", ch.color)
           .attr("d", line);
-
-        svg
-          .append("circle")
-          .attr("cx", x(lastData.unixtime * 1000))
-          .attr("cy", lastY)
-          .attr("r", 5)
-          .attr("stroke-width", 3)
-          .attr("stroke", ch.color)
-          .attr("fill", "rgba(255,255,255,0.8)");
 
         if (ch.description && ch.description.toLowerCase() === "ambient") {
           const area = d3
@@ -259,10 +278,19 @@ export default {
 
           svg
             .append("path")
-            .data([arr])
+            .datum(arr)
             .attr("fill", `url(#gradient${ch.id})`)
             .attr("d", area);
         }
+
+        svg
+          .append("circle")
+          .attr("cx", x(lastData.unixtime * 1000))
+          .attr("cy", lastY)
+          .attr("r", 5)
+          .attr("stroke-width", 3)
+          .attr("stroke", ch.color)
+          .attr("fill", "rgba(255,255,255,0.8)");
       });
     },
     addDataPoint(svg, chartWidth) {
