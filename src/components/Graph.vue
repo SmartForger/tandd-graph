@@ -32,7 +32,8 @@ export default {
       ybottom: 0,
       bubbleX: 0,
       bubbleY: 0,
-      bubblePos: "top"
+      bubblePos: "top",
+      svgdefs: null
     };
   },
   watch: {
@@ -97,8 +98,8 @@ export default {
         .attr("width", svgWidth)
         .attr("height", svgHeight);
 
-      const svgDefs = svg.append("defs");
-      const thresholdGradient = svgDefs
+      this.svgdefs = svg.append("defs");
+      const thresholdGradient = this.svgdefs
         .append("linearGradient")
         .attr("id", "threshold_gradient")
         .attr("gradientTransform", "rotate(90)");
@@ -232,6 +233,36 @@ export default {
           .attr("stroke-width", 3)
           .attr("stroke", ch.color)
           .attr("fill", "rgba(255,255,255,0.8)");
+
+        if (ch.description && ch.description.toLowerCase() === "ambient") {
+          const area = d3
+            .area()
+            .curve(d3.curveBasis)
+            .x(d => x(d.unixtime * 1000))
+            .y0(-50)
+            .y1(d => (isNaN(d[key]) ? y(0) : y(d[key])));
+
+          const gradient = this.svgdefs
+            .append("linearGradient")
+            .attr("id", "gradient" + ch.id)
+            .attr("gradientTransform", "rotate(90)");
+          gradient
+            .append("stop")
+            .attr("stop-color", ch.color)
+            .attr("stop-opacity", 0)
+            .attr("offset", "0");
+          gradient
+            .append("stop")
+            .attr("stop-color", ch.color)
+            .attr("stop-opacity", 1)
+            .attr("offset", "1");
+
+          svg
+            .append("path")
+            .data([arr])
+            .attr("fill", `url(#gradient${ch.id})`)
+            .attr("d", area);
+        }
       });
     },
     addDataPoint(svg, chartWidth) {
