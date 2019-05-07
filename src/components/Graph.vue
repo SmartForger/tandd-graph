@@ -67,7 +67,7 @@ export default {
       const yextents = this.selectedChannels.map(ch => {
         const arr = this.data[ch.serial];
         const key = "ch" + ch.num;
-        return d3.extent(arr, d => (isNaN(d[key]) ? 0 : d[key]));
+        return d3.extent(arr, d => (isNaN(d[key]) ? 0 : +d[key]));
       });
       const ydomain = d3.extent([
         ...d3.merge(yextents, d => (isNaN(d) ? 0 : d)),
