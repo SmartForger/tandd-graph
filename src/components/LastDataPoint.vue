@@ -63,10 +63,12 @@ export default {
 .label {
   font-size: 30px;
   margin-right: 16px;
+  text-shadow: 2px 2px #ccc;
 }
 .value {
   font-size: 36px;
   font-weight: bold;
   width: 150px;
+  text-shadow: 2px 2px #ccc;
 }
 </style>
